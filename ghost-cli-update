@@ -1,0 +1,23 @@
+#!/usr/local/bin/bash
+
+ghost="/usr/home/ghost"
+
+pushd $ghost
+output=`sudo -u ghost -D $ghost /usr/local/bin/ghost check-update`
+echo "$output"
+if [[ "$output" == *"available"* ]]; then
+  echo "Checking the permissions in GHOST-CMS home ..."
+  sudo -u ghost -D $ghost /usr/bin/find ./ ! -path "./versions/*" -type f -exec chmod 664 {} \;
+  sudo -u ghost -D $ghost GHOST_NODE_VERSION_CHECK=false /usr/local/bin/ghost update
+  echo "Restarting GHOST-CMS ..."
+  /usr/sbin/service ghost restart
+elif [[ "$output" == *"update"* ]]; then
+  echo "Checking the permissions in GHOST-CMS home ..."
+  sudo -u ghost -D $ghost /usr/bin/find ./ ! -path "./versions/*" -type f -exec chmod 664 {} \;
+  sudo -u ghost -D $ghost GHOST_NODE_VERSION_CHECK=false /usr/local/bin/ghost update
+  echo "Restarting GHOST-CMS ..."
+  /usr/sbin/service pm2 restart
+else
+  echo "No new version of GHOST-CMS detected."
+fi
+popd
